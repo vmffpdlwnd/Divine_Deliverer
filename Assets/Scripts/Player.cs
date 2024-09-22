@@ -56,4 +56,12 @@ public class Player : MonoBehaviour
     {
         isMoving = true;
     }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Target"))
+        {
+            GameManager.Instance.GenerateObstaclesAndTarget();
+        }
+    }
 }
