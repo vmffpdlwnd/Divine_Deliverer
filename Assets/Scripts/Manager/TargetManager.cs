@@ -1,8 +1,9 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class TargetManager : MonoBehaviour
 {
-    public GameObject targetPrefab;
+    [SerializeField] private List<GameObject> targetPrefabs;
     private GameObject currentTarget;
     private GridManager gridManager;
 
@@ -21,6 +22,7 @@ public class TargetManager : MonoBehaviour
         if (position != Vector3.zero)
         {
             position.y = 0; // Set y to 0 to place on the ground
+            GameObject targetPrefab = targetPrefabs[Random.Range(0, targetPrefabs.Count)];
             currentTarget = Instantiate(targetPrefab, position, Quaternion.identity);
             Animator animator = currentTarget.GetComponent<Animator>();
             if (animator != null)

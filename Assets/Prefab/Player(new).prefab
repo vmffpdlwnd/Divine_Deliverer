@@ -151,5 +151,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89b88def645ad304bb3e21d131243017, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
+  moveSpeed: 8
   rotationSpeed: 90
+  invincibilityDuration: 3

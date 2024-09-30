@@ -9,6 +9,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public Slider timerSlider;
     public Button pauseButton;
+    public TextMeshProUGUI pauseButtonText;
 
     [Header("Timer Sprites")]
     public Sprite normalTimerSprite;
@@ -18,11 +19,11 @@ public class UIManager : MonoBehaviour
     public float gameDuration = 60f;
     public float lowTimeThreshold = 10f;
     public int scorePerTarget = 100;
-    public int penaltyPerObstacle = 50;
 
     private int currentScore = 0;
     private float remainingTime;
     private Image sliderFillImage;
+    private bool isPaused = false;
 
     public UnityEvent onGameOver;
 
@@ -37,9 +38,11 @@ public class UIManager : MonoBehaviour
         if (scoreText != null) scoreText.text = "점수: 0";
         if (pauseButton != null)
         {
-            pauseButton.onClick.AddListener(PauseGame);
-            TextMeshProUGUI buttonText = pauseButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (buttonText != null) buttonText.text = "일시정지";
+            pauseButton.onClick.AddListener(TogglePause);
+        }
+        if (pauseButtonText != null)
+        {
+            pauseButtonText.text = "일시정지";
         }
         if (timerSlider != null)
         {
@@ -51,7 +54,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void InitializeGame()
+    public void InitializeGame()
     {
         remainingTime = gameDuration;
         if (timerSlider != null)
@@ -64,11 +67,10 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
-        if (remainingTime > 0)
+        if (!isPaused && remainingTime > 0)
         {
             remainingTime -= Time.deltaTime;
             UpdateTimer();
-
             if (remainingTime <= 0)
             {
                 GameOver();
@@ -82,7 +84,6 @@ public class UIManager : MonoBehaviour
         {
             timerSlider.value = remainingTime;
         }
-
         if (sliderFillImage != null)
         {
             if (remainingTime <= lowTimeThreshold && lowTimerSprite != null)
@@ -98,7 +99,7 @@ public class UIManager : MonoBehaviour
 
     public void UpdateScore(int points)
     {
-        currentScore += points;
+        currentScore = Mathf.Max(0, currentScore + points);
         if (scoreText != null)
         {
             scoreText.text = $"점수: {currentScore}";
@@ -113,14 +114,19 @@ public class UIManager : MonoBehaviour
 
     public void AddTime(float seconds)
     {
-        remainingTime = Mathf.Min(remainingTime + seconds, gameDuration);
+        remainingTime = Mathf.Clamp(remainingTime + seconds, 0f, gameDuration);
         UpdateTimer();
     }
 
-    private void PauseGame()
+    public void TogglePause()
     {
-        Debug.Log("게임 일시 정지");
-        // 게임 일시 정지 로직 구현
+        isPaused = !isPaused;
+        GameManager.Instance.SetPauseState(isPaused);
+
+        if (pauseButtonText != null)
+        {
+            pauseButtonText.text = isPaused ? "계속하기" : "일시정지";
+        }
     }
 
     public void OnTargetCollision()
@@ -129,9 +135,26 @@ public class UIManager : MonoBehaviour
         Debug.Log($"타겟 획득! 현재 점수: {currentScore}");
     }
 
-    public void OnObstacleCollision()
+    public void ResetUI()
     {
-        UpdateScore(-penaltyPerObstacle);
-        Debug.Log($"장애물 충돌! 현재 점수: {currentScore}");
+        currentScore = 0;
+        remainingTime = gameDuration;
+
+        if (scoreText != null)
+        {
+            scoreText.text = "점수: 0";
+        }
+
+        if (timerSlider != null)
+        {
+            timerSlider.value = gameDuration;
+        }
+
+        if (pauseButtonText != null)
+        {
+            pauseButtonText.text = "일시정지";
+        }
+
+        isPaused = false;
     }
 }

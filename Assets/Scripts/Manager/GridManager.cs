@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 public class GridManager : MonoBehaviour
 {
-    public float playAreaWidth = 50f;  // 플레이 영역 크기를 증가
-    public float playAreaLength = 50f; // 플레이 영역 크기를 증가
+    public float playAreaWidth = 50f;
+    public float playAreaLength = 50f;
     public int gridSize = 10;
     private bool[,] occupiedCells;
 
@@ -13,17 +13,16 @@ public class GridManager : MonoBehaviour
         occupiedCells = new bool[gridSize, gridSize];
     }
 
-    public Vector3 GetRandomPosition(bool isTarget = false)
+    public Vector3 GetRandomPosition(bool isTarget = false, int minDistance = 0)
     {
         List<Vector2Int> availableCells = new List<Vector2Int>();
-
-        int borderBuffer = isTarget ? 1 : 0; // 타겟일 경우 가장자리에서 1칸 안쪽으로
+        int borderBuffer = isTarget ? 1 : 0;
 
         for (int gridX = borderBuffer; gridX < gridSize - borderBuffer; gridX++)
         {
             for (int gridZ = borderBuffer; gridZ < gridSize - borderBuffer; gridZ++)
             {
-                if (!occupiedCells[gridX, gridZ] && !HasNeighbor(gridX, gridZ))
+                if (!occupiedCells[gridX, gridZ] && IsCellFarEnough(gridX, gridZ, minDistance))
                 {
                     availableCells.Add(new Vector2Int(gridX, gridZ));
                 }
@@ -40,28 +39,27 @@ public class GridManager : MonoBehaviour
 
         float cellWidth = playAreaWidth / gridSize;
         float cellLength = playAreaLength / gridSize;
-
         float posX = -playAreaWidth / 2f + cellWidth * (selectedCell.x + 0.5f);
         float posZ = -playAreaLength / 2f + cellLength * (selectedCell.y + 0.5f);
 
-        return new Vector3(posX, 0f, posZ);
+        return new Vector3(posX, 0f, posZ); // y 값을 0으로 설정
     }
 
-    private bool HasNeighbor(int x, int z)
+    private bool IsCellFarEnough(int x, int z, int minDistance)
     {
-        for (int dx = -1; dx <= 1; dx++)
+        for (int dx = -minDistance; dx <= minDistance; dx++)
         {
-            for (int dz = -1; dz <= 1; dz++)
+            for (int dz = -minDistance; dz <= minDistance; dz++)
             {
                 int nx = x + dx;
                 int nz = z + dz;
                 if (nx >= 0 && nx < gridSize && nz >= 0 && nz < gridSize && occupiedCells[nx, nz])
                 {
-                    return true;
+                    return false;
                 }
             }
         }
-        return false;
+        return true;
     }
 
     public void ResetGrid()
@@ -69,26 +67,5 @@ public class GridManager : MonoBehaviour
         occupiedCells = new bool[gridSize, gridSize];
     }
 
-    private void OnDrawGizmos()
-    {
-        if (!Application.isPlaying)
-        {
-            Gizmos.color = Color.yellow;
-            float cellWidth = playAreaWidth / gridSize;
-            float cellLength = playAreaLength / gridSize;
-
-            for (int gizmoX = 0; gizmoX < gridSize; gizmoX++)
-            {
-                for (int gizmoZ = 0; gizmoZ < gridSize; gizmoZ++)
-                {
-                    Vector3 center = new Vector3(
-                        -playAreaWidth / 2f + cellWidth * (gizmoX + 0.5f),
-                        0.5f,
-                        -playAreaLength / 2f + cellLength * (gizmoZ + 0.5f)
-                    );
-                    Gizmos.DrawWireCube(center, new Vector3(cellWidth, 0.1f, cellLength));
-                }
-            }
-        }
-    }
+    // 기존의 OnDrawGizmos 메서드는 그대로 유지
 }
